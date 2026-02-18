@@ -4,8 +4,85 @@ Hangman Game
 """
 
 import random
+from typing import LiteralString
 
-WORDS = [
+
+# ASCII-арты для виселицы (7 состояний)
+HANGMAN_PICS = [
+    # 0 ошибок
+    """
+     _______
+    |/      |
+    |
+    |
+    |
+    |
+    |
+    |__""",
+    # 1 ошибка
+    """
+     _______
+    |/      |
+    |      😊
+    |
+    |
+    |
+    |
+    |__""",
+    # 2 ошибки
+    """
+     _______
+    |/      |
+    |      😊
+    |       |
+    |
+    |
+    |
+    |__""",
+    # 3 ошибки
+    """
+     _______
+    |/      |
+    |      😊
+    |      /|
+    |
+    |
+    |
+    |__""",
+    # 4 ошибки
+    """
+     _______
+    |/      |
+    |      😊
+    |      /|\\
+    |
+    |
+    |
+    |__""",
+    # 5 ошибок
+    """
+     _______
+    |/      |
+    |      😊
+    |      /|\\
+    |      /
+    |
+    |
+    |__""",
+    # 6 ошибок - проигрыш
+    """
+     _______
+    |/      |
+    |      😵
+    |      /|\\
+    |      / \\
+    |
+    |
+    |__""",
+]
+
+
+WORDS: list[str] = [
     "питон",
     "программа",
     "компьютер",
@@ -19,12 +96,12 @@ WORDS = [
 ]
 
 
-def get_random_word():
+def get_random_word() -> str:
     """Возвращение случайного слова из списка"""
     return random.choice(WORDS)
 
 
-def display_word(word, guessed):
+def display_word(word, guessed) -> LiteralString:
     """
     Показывает слово, заменяя неугаданные буквы на '_'
 
@@ -40,19 +117,19 @@ def display_word(word, guessed):
     return " ".join(display)
 
 
-def play_game():
+def play_game() -> None:
     """Основная функция игры"""
     print('Привет! Давай сыграем в игру "Виселица"!')
     print("-" * 40)
 
-    word = get_random_word()
+    word: str = get_random_word()
     guessed = []
     while True:
-        current_display = display_word(word, guessed)
+        current_display: LiteralString = display_word(word, guessed)
         print(f"Слово: {current_display}")
         if guessed:
             print(f"Угаданные буквы: {', '.join(guessed)}")
-        letter = input("Введите букву: ").lower()
+        letter: str = input("Введите букву: ").lower()
         print("-" * 20)
         if letter in word:
             if letter in guessed:
@@ -72,7 +149,7 @@ def play_game():
             break
 
 
-def main():
+def main() -> None:
     """
     Основная функция программы
     """
