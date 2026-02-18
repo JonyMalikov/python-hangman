@@ -4,8 +4,6 @@ Hangman Game
 """
 
 import random
-from typing import LiteralString
-
 
 # ASCII-арты для виселицы (7 состояний)
 HANGMAN_PICS = [
@@ -101,7 +99,7 @@ def get_random_word() -> str:
     return random.choice(WORDS)
 
 
-def display_word(word, guessed) -> LiteralString:
+def display_word(word, guessed) -> str:
     """
     Показывает слово, заменяя неугаданные буквы на '_'
 
@@ -124,28 +122,56 @@ def play_game() -> None:
 
     word: str = get_random_word()
     guessed = []
+    wrong_letters = []
+    attempts = 6
+
+    print(f"У Вас есть {attempts} попыток.")
+    print(HANGMAN_PICS[0])
     while True:
-        current_display: LiteralString = display_word(word, guessed)
+        print("\n" + "=" * 40)
+
+        current_display = display_word(word, guessed)
         print(f"Слово: {current_display}")
+
+        if wrong_letters:
+            print(f"Неправельные буквы: {', '.join(wrong_letters)}")
         if guessed:
             print(f"Угаданные буквы: {', '.join(guessed)}")
+
+        print(f"Осталось попыток: {attempts}")
+        print(HANGMAN_PICS[6 - attempts])
+
         letter: str = input("Введите букву: ").lower()
-        print("-" * 20)
+
+        if len(letter) != 1:
+            print("Пожалуйста, введите только одну букву!")
+            continue
+        if letter in guessed or letter in wrong_letters:
+            print(f'Вы уже пробовали букву "{letter}"!')
+            continue
+
         if letter in word:
-            if letter in guessed:
-                print(f"Буква '{letter}' уже угадана!")
-            else:
-                guessed.append(letter)
-                print(f"✅ Отлично! Буква '{letter}' есть в слове!")
+            guessed.append(letter)
+            print(f"✅ Отлично! Буква '{letter}' есть в слове!")
         else:
+            wrong_letters.append(letter)
+            attempts -= 1
             print(f"❌ К сожалению, буквы '{letter}' нет в слове")
-        won = True
-        for char in word:
-            if char not in guessed:
-                won = False
-                break
+            print(f"Осталось попыток: {attempts}")
+
+        won = all(char in guessed for char in word)
         if won:
+            print("\n" + "=" * 40)
+            print(HANGMAN_PICS[6 - attempts])
             print(f"\n🎉 ПОЗДРАВЛЯЕМ! Вы угадали слово: {word.upper()}")
+            print(f"У Вас осталось {attempts} попыток.")
+            break
+
+        if attempts <= 0:
+            print("\n" + "=" * 40)
+            print(HANGMAN_PICS[6])
+            print("💀 ИГРА ОКОНЧЕНА! Вы проиграли.")
+            print(f"Загаданное слово было: {word.upper()}")
             break
 
 
