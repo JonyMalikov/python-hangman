@@ -5,6 +5,7 @@ Hangman Game
 
 import random
 
+HINT_COST = 2
 # ASCII-арты для виселицы (7 состояний)
 HANGMAN_PICS = [
     # 0 ошибок
@@ -94,6 +95,12 @@ WORDS: list[str] = [
 ]
 
 
+def is_russian_word(s: str) -> bool:
+    """Проверяет, что строка состоит только из русских букв (включая ё)"""
+    russian_alphabet = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя")
+    return all(char in russian_alphabet for char in s.lower())
+
+
 def get_random_word() -> str:
     """Возвращение случайного слова из списка"""
     return random.choice(WORDS)
@@ -106,13 +113,7 @@ def display_word(word, guessed) -> str:
     Например: для слова "python" и угаданных букв ['p', 't']
     вернет: "p _ t _ _ _"
     """
-    display = []
-    for letter in word:
-        if letter in guessed:
-            display.append(letter)
-        else:
-            display.append("_")
-    return " ".join(display)
+    return " ".join([letter if letter in guessed else "_" for letter in word])
 
 
 def play_game() -> None:
@@ -127,40 +128,66 @@ def play_game() -> None:
 
     print(f"У Вас есть {attempts} попыток.")
     print(HANGMAN_PICS[0])
+
     while True:
         print("\n" + "=" * 40)
-
-        current_display = display_word(word, guessed)
-        print(f"Слово: {current_display}")
-
+        print(f"Слово: {display_word(word, guessed)}")
         if wrong_letters:
-            print(f"Неправельные буквы: {', '.join(wrong_letters)}")
+            print(f"Неправильные буквы: {', '.join(wrong_letters)}")
         if guessed:
             print(f"Угаданные буквы: {', '.join(guessed)}")
-
         print(f"Осталось попыток: {attempts}")
         print(HANGMAN_PICS[6 - attempts])
 
-        letter: str = input("Введите букву: ").lower()
+        user_input = (
+            input("\nВведите букву, слово целиком или '?' для подсказки:")
+            .strip()
+            .lower()
+        )
 
-        if len(letter) != 1:
-            print("Пожалуйста, введите только одну букву!")
-            continue
-        if letter in guessed or letter in wrong_letters:
-            print(f'Вы уже пробовали букву "{letter}"!')
-            continue
-
-        if letter in word:
-            guessed.append(letter)
-            print(f"✅ Отлично! Буква '{letter}' есть в слове!")
-        else:
-            wrong_letters.append(letter)
-            attempts -= 1
-            print(f"❌ К сожалению, буквы '{letter}' нет в слове")
+        if user_input == "?":
+            if attempts < HINT_COST:
+                print(f"Недостаточно попыток для подсказки (нужно {HINT_COST}).")
+                continue
+            remaining = [c for c in word if c not in guessed]
+            if not remaining:
+                print("Все буквы уже открыты!")
+                continue
+            hint = random.choice(remaining)
+            guessed.append(hint)
+            attempts -= HINT_COST
+            print(f"Подсказка: открыта буква '{hint}'.")
             print(f"Осталось попыток: {attempts}")
+        elif len(user_input) == 1:
+            if not is_russian_word(user_input):
+                print("Пожалуйста, введите русскую букву.")
+                continue
 
-        won = all(char in guessed for char in word)
-        if won:
+            if user_input in guessed or user_input in wrong_letters:
+                print(f'Вы уже пробовали букву "{user_input}"!')
+                continue
+
+            if user_input in word:
+                guessed.append(user_input)
+                print(f"✅ Отлично! Буква '{user_input}' есть в слове!")
+            else:
+                wrong_letters.append(user_input)
+                attempts -= 1
+                print(f"❌ К сожалению, буквы '{user_input}' нет в слове")
+                # print(f"Осталось попыток: {attempts}")
+        else:
+            if not is_russian_word(user_input):
+                print("Слово должно содержать только русские буквы.")
+                continue
+            if user_input == word:
+                guessed = list(set(word))
+                print("🎉 Поздравляем! Вы угадали слово целиком!")
+            else:
+                attempts -= 1
+                print(f"❌ Неверное слово! Осталось попыток: {attempts}")
+
+        # won = all(char in guessed for char in word)
+        if all(c in guessed for c in word):
             print("\n" + "=" * 40)
             print(HANGMAN_PICS[6 - attempts])
             print(f"\n🎉 ПОЗДРАВЛЯЕМ! Вы угадали слово: {word.upper()}")
@@ -185,7 +212,7 @@ def main() -> None:
 
     play_game()
 
-    print("\nСпасибо за игру! До встреи!")
+    print("\nСпасибо за игру! До встречи!")
 
 
 if __name__ == "__main__":
